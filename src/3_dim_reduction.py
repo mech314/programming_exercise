@@ -51,6 +51,7 @@ def run_pca(
         merged_df: pd.DataFrame, 
         components: int
         ) -> tuple[pd.DataFrame, dict]:
+    """Log transform, scale and run PC components"""
 
     # log-transform to tame skewed range, then standardize per gene
     X = np.log1p(merged_df)
@@ -75,6 +76,11 @@ def plot_pca(
         title: str,
         out_path: str
         ) -> None:
+    
+    """
+    Plot PC components agains each other and color by
+    a) clusterK4_kmeans and b) by race
+    """
 
     pc_pairs = [('PC1', 'PC2'), ('PC2', 'PC3'), ('PC1', 'PC3')]
 

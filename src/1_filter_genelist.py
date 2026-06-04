@@ -83,7 +83,7 @@ def filter_expression(
         gene_list: np.ndarray,
         ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Filter to pipeline samples and to the provided gene list."""
-    # keep only samples that passed the pipeline
+    # keep only samples that passed the pipeline filter
     meta_df = meta_df[meta_df['ran_in_way_pipeline'] == True]
     common = meta_df['ID'][meta_df['ID'].isin(expr_df.columns)]
 
@@ -94,7 +94,6 @@ def filter_expression(
     # subset to the provided gene list
     expr_filtered = expr_samples[expr_samples.index.isin(gene_list)]
 
-    print(f'Samples: {expr_df.shape[1]} -> {expr_samples.shape[1]}')
     print(f'Genes:   {expr_samples.shape[0]} -> {expr_filtered.shape[0]}')
     return expr_samples, expr_filtered, meta_df
 
@@ -117,6 +116,7 @@ def plot_gene_counts(
 def main() -> None:
     args = get_args()
 
+    # make sure paths exists
     out_path = Path(args.out_path)
     out_path.mkdir(parents=True, exist_ok=True)
     fig_path = Path(args.fig_path)
@@ -125,7 +125,7 @@ def main() -> None:
     expr_df, gene_list, meta_df = load_data(args.expr, args.genes, args.meta)
     expr_samples, expr_filtered, meta_df = filter_expression(expr_df, meta_df, gene_list)
 
-    # save filtered, aligned outputs (gene names / sample IDs kept in the index)
+    # save filtered, aligned outputs
     meta_df.to_csv(out_path / f'{args.sample}_filtered_metadata.tsv', sep='\t')
     expr_filtered.to_csv(out_path / f'{args.sample}_{args.gene_list_name}_filtered.tsv', sep='\t')
 
