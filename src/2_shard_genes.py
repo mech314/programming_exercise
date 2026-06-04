@@ -14,9 +14,10 @@ def main():
 
     args = get_args()
 
-    list1_df = pd.read_csv("data/supp_table_1_GlobalMAD_genelist.csv").iloc[:, 0]
-    list2_df = pd.read_csv("data/supp_table_2_CommonGenes_genelist.csv").iloc[:, 0]
+    list1_df = pd.read_csv(args.list1).iloc[:, 0]
+    list2_df = pd.read_csv(args.list2).iloc[:, 0]
 
+    # get intersection of two sets
     shared = set(list1_df) & set(list2_df)
 
     print(f'Shared genes: {len(shared)}')
