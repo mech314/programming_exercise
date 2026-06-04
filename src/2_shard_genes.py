@@ -4,8 +4,16 @@ import pandas as pd
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser('Provide gene lists')
 
-    parser.add_argument('-list1', required=True, type=str, help='List 1')
-    parser.add_argument('-list2', required=True, type=str, help='List 2')
+    parser.add_argument(
+        '-list1', 
+        required=True, 
+        type=str, 
+        help='List 1')
+    parser.add_argument(
+        '-list2', 
+        required=True, 
+        type=str, 
+        help='List 2')
 
     return parser.parse_args()
 
