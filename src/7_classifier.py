@@ -18,6 +18,7 @@ from sklearn.metrics import (
     confusion_matrix,
     balanced_accuracy_score,
     f1_score,
+    roc_auc_score
 )
 
 
@@ -60,6 +61,8 @@ def get_args() -> argparse.Namespace:
 
 
 def load_data(expr_data: str, meta_data: str) -> tuple[pd.DataFrame, pd.Series]:
+
+    """Load meta and data, drop nas and return X and y."""
     expr_df = pd.read_csv(expr_data, sep='\t', header=0, index_col=0).T
     meta_df = pd.read_csv(meta_data, sep='\t', header=0, index_col=0)
 
@@ -75,6 +78,11 @@ def load_data(expr_data: str, meta_data: str) -> tuple[pd.DataFrame, pd.Series]:
 
 
 def make_pipeline(C: float) -> Pipeline:
+
+    """
+    Combine all processing in one pipeline to avoid leakage.
+    Log-transform, scale, L2 reg
+    """
     pipe = Pipeline([
         ('log', FunctionTransformer(np.log1p)),
         ('scale', StandardScaler()),
@@ -96,20 +104,29 @@ def ev_cv(
         y: pd.Series,
         n_splits: int,
         ) -> pd.Series:
-    
+    """
+    Stratify by calss.
+    """
+    # Cluster are inbalanced, so each fold will preserve class distribution.
     skfold = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=314)
 
+    # cross val
     y_pred = cross_val_predict(pipe, X, y, cv=skfold)
     y_pred = pd.Series(y_pred, index=y.index)
 
+    # get metrics for imbalanced classes
     balanced_acc = balanced_accuracy_score(y, y_pred)
     macro_f1 = f1_score(y, y_pred, average='macro')
 
     print('=========Stats================')
     print(f"Balanced accuracy: {balanced_acc:.4f}")
-    print(f"Macro F1:          {macro_f1:.4f}")
+    print(f"Macro F1: {macro_f1:.4f}")
     print("\nPer-class:")
     print(classification_report(y, y_pred))
+
+    y_probabilities = cross_val_predict(pipe, X, y, cv=skfold, method='predict_proba')
+    auc = roc_auc_score(y, y_probabilities, multi_class='ovr', average='macro')
+    print(f"Macro ROC AUC: {auc:.3f}")
 
     return y_pred
 
