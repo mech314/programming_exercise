@@ -125,13 +125,16 @@ def main():
     white_df = pd.read_csv(args.white_expr, sep='\t', header=0, index_col=0)
 
     # merge expression on shared genes, then transpose to samples x genes
-    merged_df = pd.concat([black_df, white_df], axis=1, join='inner').T
+    merged_df = pd.concat([black_df, white_df], axis=1, join='inner')
 
+    # save untransposed for consistency with race-datasets
     merged_df.to_csv(
         f'{args.out_path}/black_white_expr.tsv',
         sep='\t',
         header=True
     )
+
+    merged_df = merged_df.T # transpose to genes x sample
 
     # load and merge metadata
     black_meta_df = pd.read_csv(args.black_meta, sep='\t', header=0, index_col=0)
