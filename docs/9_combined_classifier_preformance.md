@@ -1,4 +1,4 @@
-### Q9c — Combined model: why better than Q8, slightly below Q7
+### Combined model: why better than transfer learning, and slightly worse then specialized model
 
 | metric | white CV| white→black transfer | combined holdout |
 | --- | --- | --- | --- |
