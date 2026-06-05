@@ -144,7 +144,7 @@ def main() -> None:
     print(f"Macro ROC AUC: {roc_auc_score(y, y_proba, multi_class='ovr', average='macro'):.4f}")
 
     # plot stats
-    plot_stats(y, y_pred, fig_path / f'{args.sample}_individuals_conf.png', 'black')
+    plot_stats(y, y_pred, fig_path / f'{args.sample}_individuals_confMatrix.png', 'black')
 
 
 if __name__ == "__main__":

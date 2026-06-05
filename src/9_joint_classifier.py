@@ -12,7 +12,7 @@ from pathlib import Path
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler, FunctionTransformer
 from sklearn.pipeline import Pipeline
-from sklearn.model_selection import StratifiedKFold, cross_val_predict
+from sklearn.model_selection import StratifiedKFold, cross_val_predict, train_test_split
 from sklearn.metrics import (
     classification_report,
     confusion_matrix,
@@ -60,27 +60,36 @@ def get_args() -> argparse.Namespace:
         required=True,
         type=str,
         help="Sample name")
-
-
+    parser.add_argument(
+        '-test_size', 
+        type=float, 
+        default=0.2, 
+        help='Holdout size')
 
     return parser.parse_args()
 
 
-def load_data(expr_data: str, meta_data: str) -> tuple[pd.DataFrame, pd.Series]:
+def load_data(
+        expr_data: str, 
+        meta_data: str
+        ) -> tuple[pd.DataFrame, pd.Series, pd.Series]:
 
     """Load meta and data, drop nas and return X and y."""
-    expr_df = pd.read_csv(expr_data, sep='\t', header=0, index_col=0).T
+    # if you use output from previous tasks we don't need to transpose.
+    expr_df = pd.read_csv(expr_data, sep='\t', header=0, index_col=0) 
     meta_df = pd.read_csv(meta_data, sep='\t', header=0, index_col=0)
 
     # align meta just in case input is not aligned
     meta_df = meta_df.loc[expr_df.index]
 
     y = meta_df['ClusterK4_kmeans']
+    race = meta_df['race']
     mask = y.notna()
     X = expr_df.loc[mask]
     y = y[mask]
+    race = race[mask]
 
-    return X, y
+    return X, y, race
 
 
 def make_pipeline(C: float) -> Pipeline:
@@ -188,19 +197,42 @@ def main() -> None:
     fig_path.mkdir(parents=True, exist_ok=True)
 
     # Getting data
-    X, y = load_data(args.expr, args.meta)
+    X, y, race = load_data(args.expr, args.meta)
+
+    # It seems that we need to stratify here by both race and subtype
+    strat = y.astype(str) + "_" + race.astype(str)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y,
+        test_size=args.test_size,
+        stratify=strat,
+        random_state=314,
+    )
 
     # building pipeline
     pipe = make_pipeline(args.C)
 
     # run cross val
-    y_pred = ev_cv(pipe, X, y, args.n_splits)
+    y_cv_pred = ev_cv(pipe, X_train, y_train, args.n_splits)
 
-    # plot stats
-    plot_stats(y, y_pred, fig_path / f'{args.sample}_individuals_confMatrix.png', 'white')
+    # don't really need to plot CV resuls since we are evaluating holdout
+    # # plot stats
+    # plot_stats(y_train, y_cv_pred, fig_path / f'{args.sample}_individuals_confMatrix.png', 'white')
 
     # train and save model
-    train_final(pipe, X, y, out_path / f'{args.sample}_logreg.pkl')
+    pipe = train_final(pipe, X_train, y_train, out_path / f'{args.sample}_logreg.pkl')
+
+    # test holdout dataset
+    y_test_pred = pd.Series(pipe.predict(X_test), index=y_test.index)
+    y_test_proba =pipe.predict_proba(X_test)
+
+    print("=== Holdout (20%) evaluation ===")
+    print(f"Balanced accuracy: {balanced_accuracy_score(y_test, y_test_pred):.4f}")
+    print(f"Macro F1:          {f1_score(y_test, y_test_pred, average='macro'):.4f}")
+    print(classification_report(y_test, y_test_pred))
+    print(f"Macro ROC AUC: {roc_auc_score(y_test, y_test_proba, multi_class='ovr', average='macro'):.4f}")
+
+    plot_stats(y_test, y_test_pred, fig_path / f'{args.sample}_holdout_confMatrix.png', f'{args.sample}_holdout')
 
 
 if __name__ == "__main__":
