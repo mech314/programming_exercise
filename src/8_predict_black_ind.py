@@ -36,9 +36,14 @@ def get_args() -> argparse.Namespace:
         type=str, 
         help='Path to expression table)')
     parser.add_argument(
+        '-model', 
+        required=True,
+        type=str,
+        help='Path to pretrained model')
+    parser.add_argument(
         '-out_path', 
         type=str, 
-        default='models', 
+        default='out', 
         help='Folder to save model')
     parser.add_argument(
         '-fig_path', 
@@ -62,7 +67,6 @@ def get_args() -> argparse.Namespace:
         help="Sample name")
 
 
-
     return parser.parse_args()
 
 
@@ -83,65 +87,17 @@ def load_data(expr_data: str, meta_data: str) -> tuple[pd.DataFrame, pd.Series]:
     return X, y
 
 
-def make_pipeline(C: float) -> Pipeline:
-
-    """
-    Combine all processing in one pipeline to avoid leakage.
-    Log-transform, scale, L2 reg
-    """
-    pipe = Pipeline([
-        ('log', FunctionTransformer(np.log1p)),
-        ('scale', StandardScaler()),
-        ('classifier', LogisticRegression(
-            penalty='l2',
-            #multi_class='multinomial',
-            class_weight='balanced',
-            max_iter=1000,
-            C=C
-        ))
-    ])
-
-    return pipe
-
-
-def ev_cv(
-        pipe: Pipeline,
-        X: pd.DataFrame,
-        y: pd.Series,
-        n_splits: int,
-        ) -> pd.Series:
-    """
-    Stratify by calss.
-    """
-    # Cluster are inbalanced, so each fold will preserve class distribution.
-    skfold = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=314)
-
-    # cross val
-    y_pred = cross_val_predict(pipe, X, y, cv=skfold)
-    y_pred = pd.Series(y_pred, index=y.index)
-
-    # get metrics for imbalanced classes
-    balanced_acc = balanced_accuracy_score(y, y_pred)
-    macro_f1 = f1_score(y, y_pred, average='macro')
-
-    print('=========Stats================')
-    print(f"Balanced accuracy: {balanced_acc:.4f}")
-    print(f"Macro F1: {macro_f1:.4f}")
-    print("\nPer-class:")
-    print(classification_report(y, y_pred))
-
-    y_probabilities = cross_val_predict(pipe, X, y, cv=skfold, method='predict_proba')
-    auc = roc_auc_score(y, y_probabilities, multi_class='ovr', average='macro')
-    print(f"Macro ROC AUC: {auc:.3f}")
-
-    return y_pred
+def load_model(model_file: str) -> Pipeline:
+    """Load the pretrained model."""
+    with open(model_file, 'rb') as f:
+        return pickle.load(f)
 
 
 def plot_stats(
         y_true: pd.Series,
         y_pred: pd.Series,
         fig_file: Path,
-        sample_name: str,
+        sample_name: str
         ) -> None:
     """Function to plot confusion matrix for all classses"""
     labels = sorted(y_true.unique())
@@ -161,22 +117,6 @@ def plot_stats(
     plt.close()
 
 
-def train_final(
-        pipe: Pipeline,
-        X: pd.DataFrame,
-        y: pd.Series,
-        model_file: Path, 
-    ) -> Pipeline:
-    """Fit final model"""
-
-    pipe.fit(X, y)
-    # save as pickle to use later
-    with open(model_file, 'wb') as f:
-        pickle.dump(pipe, f)
-
-    return pipe
-
-
 def main() -> None:
     
     args = get_args()
@@ -191,16 +131,20 @@ def main() -> None:
     X, y = load_data(args.expr, args.meta)
 
     # building pipeline
-    pipe = make_pipeline(args.C)
+    pipe = load_model(args.model)
 
     # run cross val
-    y_pred = ev_cv(pipe, X, y, args.n_splits)
+    y_pred = pd.Series(pipe.predict(X), index=y.index) 
+
+    print(f"Balanced accuracy: {balanced_accuracy_score(y, y_pred):.4f}")
+    print(f"Macro F1:          {f1_score(y, y_pred, average='macro'):.4f}")
+    print(classification_report(y, y_pred))
+
+    y_proba = pipe.predict_proba(X)
+    print(f"Macro ROC AUC: {roc_auc_score(y, y_proba, multi_class='ovr', average='macro'):.4f}")
 
     # plot stats
-    plot_stats(y, y_pred, fig_path / f'{args.sample}_individuals_conf.png', 'white')
-
-    # train and save model
-    train_final(pipe, X, y, out_path / f'{args.sample}_logreg.pkl')
+    plot_stats(y, y_pred, fig_path / f'{args.sample}_individuals_conf.png', 'black')
 
 
 if __name__ == "__main__":
