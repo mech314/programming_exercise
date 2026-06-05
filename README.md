@@ -53,6 +53,7 @@ data/
 Run scripts from the project root in order. Each script accepts `-h` for full options.
 
 **Task 1 — Filter expression to GlobalMAD genes**
+Writes filtering summary to output folder
 
 ```bash
 python src/1_filter_genelist.py \
@@ -66,6 +67,9 @@ python src/1_filter_genelist.py \
   -expr data/supp_table_7_white_expr.tsv \
   -genes data/supp_table_1_GlobalMAD_genelist.csv \
   -sample white -gene_list_name GlobalMAD
+
+python src/1_plot_filtered_data.py \
+  -summary out/filter_summary.tsv
 ```
 
 **Task 2 — Count shared genes between gene lists**

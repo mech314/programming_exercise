@@ -57,24 +57,31 @@ def plot_stats(
         y_pred: pd.Series,
         fig_file: Path,
         sample_name: str,
+        cmap: str = 'Blues',
         ) -> None:
-    """Function to plot confusion matrix for all classses"""
+    """Plot a row-normalized confusion matrix with subtype names."""
     labels = sorted(y_true.unique())
     cm = confusion_matrix(y_true, y_pred, labels=labels, normalize='true')
 
+    # numeric clusters -> subtype names for readability
+    name_map = {1: 'Mesenchymal', 2: 'Proliferative', 3: 'Immunoreactive', 4: 'Differentiated'}
+    display_labels = [name_map.get(l, l) for l in labels]
+
     plt.figure(figsize=(6, 5))
     sns.heatmap(
-        cm, annot=True, fmt='.2f', cmap='Blues',
-        xticklabels=labels, yticklabels=labels,
+        cm, annot=True, fmt='.2f', cmap=cmap,
+        xticklabels=display_labels, yticklabels=display_labels,
         cbar_kws={'label': 'fraction of true class'},
     )
-    plt.xlabel('Predicted')
-    plt.ylabel('True')
+    plt.xlabel('Predicted', fontweight='bold')
+    plt.ylabel('True', fontweight='bold')
     plt.title(f'Confusion matrix ({sample_name} individuals)')
+    plt.xticks(rotation=20, ha='right')
+    plt.yticks(rotation=0)
     plt.tight_layout()
     plt.savefig(fig_file, dpi=150, bbox_inches='tight')
     plt.close()
-
+    
 
 def make_pipeline(C: float) -> Pipeline:
 

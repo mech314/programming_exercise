@@ -47,6 +47,12 @@ def get_args() -> argparse.Namespace:
         required=True,
         type=str,
         help="Sample name")
+    parser.add_argument(
+        '-cmap',
+        default='YlOrBr',
+        type=str,
+        help='Color pallet fpr confusion matrix'
+    )
 
 
     return parser.parse_args()
@@ -85,7 +91,7 @@ def main() -> None:
     print(f"Macro ROC AUC: {roc_auc_score(y, y_proba, multi_class='ovr', average='macro'):.4f}")
 
     # plot stats
-    plot_stats(y, y_pred, fig_path / f'{args.sample}_individuals_confMatrix.png', args.sample)
+    plot_stats(y, y_pred, fig_path / f'8_{args.sample}_individuals_confMatrix.png', args.sample, cmap=args.cmap)
 
 
 if __name__ == "__main__":

@@ -44,6 +44,12 @@ def get_args() -> argparse.Namespace:
         required=True,
         type=str,
         help="Sample name")
+    parser.add_argument(
+        '-cmap',
+        default='YlGnBu',
+        type=str,
+        help='Color pallet fpr confusion matrix'
+    )
 
     return parser.parse_args()
 
@@ -84,7 +90,7 @@ def main() -> None:
     y_pred = ev_cv(pipe, X, y, args.n_splits)
 
     # plot stats
-    plot_stats(y, y_pred, fig_path / f'{args.sample}_individuals_confMatrix.png', args.sample)
+    plot_stats(y, y_pred, fig_path / f'7_{args.sample}_individuals_confMatrix.png', args.sample, cmap=args.cmap)
 
     # train and save model
     train_final(pipe, X, y, out_path / f'{args.sample}_logreg.pkl')

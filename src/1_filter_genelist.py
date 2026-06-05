@@ -1,9 +1,6 @@
 import argparse
 import numpy as np
 import pandas as pd
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 
 from pathlib import Path
 
@@ -46,11 +43,6 @@ def get_args() -> argparse.Namespace:
         default='out', 
         help='Folder to save data')
     parser.add_argument(
-        '-fig_path', 
-        type=str, 
-        default='figs', 
-        help='Folder to save figures')
-    parser.add_argument(
         '-sample', 
         required=True, 
         type=str, 
@@ -81,7 +73,7 @@ def filter_expression(
         expr_df: pd.DataFrame,
         meta_df: pd.DataFrame,
         gene_list: np.ndarray,
-        ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+        ) -> tuple[pd.DataFrame, pd.DataFrame, int, int]:
     """Filter to pipeline samples and to the provided gene list."""
     # keep only samples that passed the pipeline filter
     meta_df = meta_df[meta_df['ran_in_way_pipeline'] == True]
@@ -94,23 +86,32 @@ def filter_expression(
     # subset to the provided gene list
     expr_filtered = expr_samples[expr_samples.index.isin(gene_list)]
 
-    print(f'Genes:   {expr_samples.shape[0]} -> {expr_filtered.shape[0]}')
-    return expr_samples, expr_filtered, meta_df
+    genes_before = expr_samples.shape[0]
+    genes_after = expr_filtered.shape[0]
+
+    print(f'Genes: {genes_before} -> {genes_after}')
+    return expr_filtered, meta_df, genes_before, genes_after
 
 
-def plot_gene_counts(
-        before: int,
-        after: int,
-        gene_list_name: str,
-        fig_file: Path,
+def write_summary(
+        genes_before: int, 
+        genes_after: int, 
+        sample: str, 
+        summary_file: Path
         ) -> None:
-    """Bar plot of gene count before and after filtering."""
-    bars = plt.bar(['Before', 'After'], [before, after], color=['#4C72B0', '#DD8452'])
-    plt.bar_label(bars)
-    plt.ylabel('Genes')
-    plt.title(f'Genes before and after {gene_list_name} filtering')
-    plt.savefig(fig_file, dpi=150, bbox_inches='tight')
-    plt.close()
+    """Append a row to a shared gene-count summary."""
+    row = pd.DataFrame(
+        {'genes_before': [genes_before], 'genes_after': [genes_after]},
+        index=[sample],
+    )
+    # append if file exists, else create with header
+    if summary_file.exists():
+        existing = pd.read_csv(summary_file, sep='\t', index_col=0)
+        out = pd.concat([existing, row])
+        out = out[~out.index.duplicated(keep='last')]  # rerun of same sample overwrites its row
+    else:
+        out = row
+    out.to_csv(summary_file, sep='\t')
 
 
 def main() -> None:
@@ -119,22 +120,15 @@ def main() -> None:
     # make sure paths exists
     out_path = Path(args.out_path)
     out_path.mkdir(parents=True, exist_ok=True)
-    fig_path = Path(args.fig_path)
-    fig_path.mkdir(parents=True, exist_ok=True)
 
     expr_df, gene_list, meta_df = load_data(args.expr, args.genes, args.meta)
-    expr_samples, expr_filtered, meta_df = filter_expression(expr_df, meta_df, gene_list)
+    expr_filtered, meta_df, genes_before, genes_after = filter_expression(expr_df, meta_df, gene_list)
+
+    write_summary(genes_before, genes_after, args.sample, out_path / 'filter_summary.tsv')
 
     # save filtered, aligned outputs
     meta_df.to_csv(out_path / f'{args.sample}_filtered_metadata.tsv', sep='\t')
     expr_filtered.to_csv(out_path / f'{args.sample}_{args.gene_list_name}_filtered.tsv', sep='\t')
-
-    plot_gene_counts(
-        expr_samples.shape[0],
-        expr_filtered.shape[0],
-        args.gene_list_name,
-        fig_path / f'{args.sample}_individuals_{args.gene_list_name}.png',
-    )
 
 
 if __name__ == '__main__':

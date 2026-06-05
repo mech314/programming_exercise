@@ -58,6 +58,12 @@ def get_args() -> argparse.Namespace:
         type=float, 
         default=0.2, 
         help='Holdout size')
+    parser.add_argument(
+        '-cmap',
+        default='mako',
+        type=str,
+        help='Color pallet fpr confusion matrix'
+    )
 
     return parser.parse_args()
 
@@ -118,13 +124,19 @@ def main() -> None:
     y_test_pred = pd.Series(pipe.predict(X_test), index=y_test.index)
     y_test_proba = pipe.predict_proba(X_test)
 
-    print("=== Holdout (20%) evaluation ===")
+    print("===Holdout (20%) evaluation===")
     print(f"Balanced accuracy: {balanced_accuracy_score(y_test, y_test_pred):.4f}")
     print(f"Macro F1:          {f1_score(y_test, y_test_pred, average='macro'):.4f}")
     print(classification_report(y_test, y_test_pred))
     print(f"Macro ROC AUC: {roc_auc_score(y_test, y_test_proba, multi_class='ovr', average='macro'):.4f}")
 
-    plot_stats(y_test, y_test_pred, fig_path / f'{args.sample}_holdout_confMatrix.png', f'{args.sample}_holdout')
+    plot_stats(
+        y_test, 
+        y_test_pred, 
+        fig_path / f'9_{args.sample}_holdout_confMatrix.png', 
+        f'{args.sample}_holdout',
+        cmap=args.cmap
+        )
 
 
 if __name__ == "__main__":

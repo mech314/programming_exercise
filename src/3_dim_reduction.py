@@ -9,6 +9,12 @@ from pathlib import Path
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
+# race palette: same Tan / Turquoise as the gene-count plot
+RACE_COLORS = {'black': '#D4B95E', 'white': '#5BC0BE'}
+
+# colorblind-friendly 4-color palette for subtypes (Okabe-Ito subset)
+CLUSTER_COLORS = ['#E69F00', '#56B4E9', '#009E73', '#CC79A7']
+
 
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser('Provide paths')
@@ -79,34 +85,41 @@ def plot_pca(
         pc_var: dict,
         color_col: str,
         title: str,
-        out_path: str
+        out_path: str,
+        legend_title: str
         ) -> None:
-    
     """
-    Plot PC components agains each other and color by
-    a) clusterK4_kmeans and b) by race
+    Plot PC components against each other and color by
+    a) ClusterK4_kmeans or b) race.
     """
-
     pc_pairs = [('PC1', 'PC2'), ('PC2', 'PC3'), ('PC1', 'PC3')]
 
     fig, axes = plt.subplots(1, 3, figsize=(15, 4.5))
     groups = df[color_col].astype('category')
     cats = groups.cat.categories
-    colors = plt.cm.tab10(range(len(cats)))
+
+    # pick palette depending on what we color by
+    if color_col == 'race':
+        colors = [RACE_COLORS[str(cat)] for cat in cats]
+    else:
+        colors = CLUSTER_COLORS[:len(cats)]
 
     for ax, (x, y) in zip(axes, pc_pairs):
         for cat, c in zip(cats, colors):
             mask = groups == cat
             ax.scatter(df.loc[mask, x], df.loc[mask, y],
-                       s=18, alpha=0.7, color=c, label=str(cat))
-        ax.set_xlabel(f"{x} ({pc_var[x]:.1f}%)")
-        ax.set_ylabel(f"{y} ({pc_var[y]:.1f}%)")
+                       s=18, color=c, label=str(cat))
+        ax.set_xlabel(f"{x} ({pc_var[x]:.1f}%)", fontweight='bold')
+        ax.set_ylabel(f"{y} ({pc_var[y]:.1f}%)", fontweight='bold')
+        ax.set_title(f"{x} vs {y}")
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
 
-    axes[0].legend(title=color_col, fontsize=8)
+    axes[0].legend(title=legend_title, fontsize=8)
     fig.suptitle(title)
     fig.tight_layout()
 
-    fig.savefig(f'{out_path}/PCA_{color_col}.png', dpi=150, bbox_inches='tight')
+    fig.savefig(f'{out_path}/2_PCA_{color_col}.png', dpi=150, bbox_inches='tight')
     plt.close(fig)
 
 
@@ -160,8 +173,11 @@ def main():
 
     # plot PCA
     plot_pca(pca_df, var, 'ClusterK4_kmeans', 
-             'PCA colored by ClusterK4_kmeans subtype', args.fig_path)
-    plot_pca(pca_df, var, 'race', 'PCA colored by race', args.fig_path)
+        'PCA colored by Subtype', args.fig_path,
+        legend_title='Subtype')  
+    plot_pca(pca_df, var, 'race', 
+        'PCA colored by Race', args.fig_path, 
+        legend_title='Race')
 
 
 if __name__ == "__main__":
