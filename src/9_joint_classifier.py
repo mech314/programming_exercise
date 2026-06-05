@@ -60,7 +60,7 @@ def get_args() -> argparse.Namespace:
         help='Holdout size')
     parser.add_argument(
         '-cmap',
-        default='mako',
+        default='mako_r',
         type=str,
         help='Color pallet fpr confusion matrix'
     )
@@ -133,8 +133,8 @@ def main() -> None:
     plot_stats(
         y_test, 
         y_test_pred, 
-        fig_path / f'9_{args.sample}_holdout_confMatrix.png', 
-        f'{args.sample}_holdout',
+        fig_path / f'9_{args.sample}_confMatrix.png', 
+        f'{args.sample}',
         cmap=args.cmap
         )
 
