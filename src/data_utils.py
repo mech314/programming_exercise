@@ -37,11 +37,13 @@ def load_data(
     y = meta_df['ClusterK4_kmeans']
     mask = y.notna()
 
+
     if not extra_strat:
         X = expr_df.loc[mask]
         y = y[mask]
         return X, y
     
+    # If we want to stratify by race as well. 
     else:
         race = meta_df['race']
         X = expr_df.loc[mask]
