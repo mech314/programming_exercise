@@ -94,7 +94,7 @@ python src/3_dim_reduction.py \
   -white_meta out/white_filtered_metadata.tsv
 ```
 
-Produces `figs/2_PCA_ClusterK4_kmeans.png`, `figs/2_PCA_race.png`, and merged tables in `out/`.
+Produces `figs/2_PCA_ClusterK4_kmeans.png`, `figs/2_PCA_race.png`.
 
 **Task 4–5 — Written answers only** (see [docs](#written-answers)).
 
