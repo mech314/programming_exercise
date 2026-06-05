@@ -1,4 +1,4 @@
-ID	ran_in_way_pipeline	ClusterK2_kmeans	ClusterK3_kmeans	ClusterK4_kmeans	ClusterK2_NMF	ClusterK3_NMF	ClusterK4_NMF	ClusterK4_kmeans_TCGA_names	external_HGSCsubtype_estimate
+	ran_in_way_pipeline	ClusterK2_kmeans	ClusterK3_kmeans	ClusterK4_kmeans	ClusterK2_NMF	ClusterK3_NMF	ClusterK4_NMF	ClusterK4_kmeans_TCGA_names	external_HGSCsubtype_estimate
 Sample_20160X108	True	1.0	1.0	1.0	1.0	3.0	3.0	Mesenchymal	
 Sample_20160X247	True	1.0	2.0	2.0	2.0	2.0	2.0	Proliferative	
 Sample_20160X248	True	1.0	2.0	4.0	2.0	2.0	4.0	Differentiated	

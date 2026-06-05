@@ -134,8 +134,8 @@ def main():
     )
 
     # load and merge metadata
-    black_meta_df = pd.read_csv(args.black_meta, sep='\t', header=0)
-    white_meta_df = pd.read_csv(args.white_meta, sep='\t', header=0)
+    black_meta_df = pd.read_csv(args.black_meta, sep='\t', header=0, index_col=0)
+    white_meta_df = pd.read_csv(args.white_meta, sep='\t', header=0, index_col=0)
 
     # add race label to metadata
     black_meta_df['race'] = 'black'
@@ -143,7 +143,7 @@ def main():
 
     merged_meta_df = pd.concat([black_meta_df, white_meta_df], axis=0)
     # align metadata to expression sample order for correct coloring
-    merged_meta_df = merged_meta_df.set_index('ID').loc[merged_df.index]
+    merged_meta_df = merged_meta_df.loc[merged_df.index]
 
     merged_meta_df.to_csv(
         f'{args.out_path}/black_white_meta.tsv', 

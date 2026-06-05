@@ -96,7 +96,7 @@ python src/6_proportions.py -meta out/black_white_meta.tsv
 
 ```bash
 python src/7_classifier.py \
-  -expr out/white_CommonGenes_filtered.tsv \
+  -expr out/white_GlobalMAD_filtered.tsv \
   -meta out/white_filtered_metadata.tsv \
   -sample white
 ```
@@ -105,7 +105,7 @@ python src/7_classifier.py \
 
 ```bash
 python src/8_predict_black_ind.py \
-  -expr out/black_CommonGenes_filtered.tsv \
+  -expr out/black_GlobalMAD_filtered.tsv \
   -meta out/black_filtered_metadata.tsv \
   -model models/white_logreg.pkl \
   -sample black
