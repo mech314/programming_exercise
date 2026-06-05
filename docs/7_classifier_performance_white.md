@@ -9,9 +9,12 @@
 
 Model's predictive capacity looks decent: 
 
-- Balanced accuracy 0.89, 
-- F1 0.89
-- ROC AUC 0.985. 
+| metric            | value |
+|-------------------|-------|
+| balanced accuracy | 0.90  |
+| macro F1          | 0.89  |
+| macro ROC AUC     | 0.985 |
+| accuracy          | 0.90  |
 
 Predictive performance is good across all four subtypes (F1 0.86-0.92), 
-balancing classes definitely helped with unbalanced (Proliferative n=40) class
+balancing classes definitely helped with unbalanced (Proliferative n=~40) class
