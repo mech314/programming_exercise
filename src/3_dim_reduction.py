@@ -119,7 +119,7 @@ def plot_pca(
     fig.suptitle(title)
     fig.tight_layout()
 
-    fig.savefig(f'{out_path}/2_PCA_{color_col}.png', dpi=150, bbox_inches='tight')
+    fig.savefig(f'{out_path}/3_PCA_{color_col}.png', dpi=150, bbox_inches='tight')
     plt.close(fig)
 
 

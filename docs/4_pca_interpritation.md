@@ -15,9 +15,7 @@ right, cluster 3 toward the upper-left, while cluster 4 is spread through the
 center. Clusters overlap heavily and have no sharp boundaries. The other PC
 pairs show little structure.
 
-Importantly, weak separation in PCA does not imply the subtypes are not
-separable. PCA is linear and unsupervised, and the top three components cover
-only ~19% of variance; the class-discriminating signal may lie in directions
-not captured by PC1-PC3. A different dimentional reduction approach 
+It is important to understand that weak separation in PCA does not imply the subtypes are not
+separable. PCA is linear, which is limitation. A different dimentional reduction approach 
 (tSNE, UMAP, latent space) or supervised classifier can therefore 
 still perform well even though the clusters are not visually distinct here.
