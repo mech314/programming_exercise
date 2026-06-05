@@ -32,12 +32,17 @@ def get_args() -> argparse.Namespace:
         '-white_meta', 
         required=True, 
         type=str, 
-        elp='Metadata for white data')
+        help='Metadata for white data')
     parser.add_argument(
         '-fig_path', 
         type=str, 
         default='figs', 
         help='Folder to save figures')
+    parser.add_argument(
+        '-out_path', 
+        type=str, 
+        default='out', 
+        help='Folder to save data')
     parser.add_argument(
         '-num_components', 
         default=3, 
@@ -108,7 +113,12 @@ def plot_pca(
 def main():
 
     args = get_args()
-    Path(args.fig_path).mkdir(parents=True, exist_ok=True)
+
+    # make sure paths exists
+    out_path = Path(args.out_path)
+    out_path.mkdir(parents=True, exist_ok=True)
+    fig_path = Path(args.fig_path)
+    fig_path.mkdir(parents=True, exist_ok=True)
 
     # load and merge expression data
     black_df = pd.read_csv(args.black_expr, sep='\t', header=0, index_col=0)
@@ -116,6 +126,12 @@ def main():
 
     # merge expression on shared genes, then transpose to samples x genes
     merged_df = pd.concat([black_df, white_df], axis=1, join='inner').T
+
+    merged_df.to_csv(
+        f'{args.out_path}/black_white_expr.tsv',
+        sep='\t',
+        header=True
+    )
 
     # load and merge metadata
     black_meta_df = pd.read_csv(args.black_meta, sep='\t', header=0)
@@ -129,9 +145,17 @@ def main():
     # align metadata to expression sample order for correct coloring
     merged_meta_df = merged_meta_df.set_index('ID').loc[merged_df.index]
 
+    merged_meta_df.to_csv(
+        f'{args.out_path}/black_white_meta.tsv', 
+        sep='\t',
+        header=True
+        )
+
+    # run PCA
     pca_df, var = run_pca(merged_df, args.num_components)
     pca_df = pca_df.join(merged_meta_df[['ClusterK4_kmeans', 'race']])
 
+    # plot PCA
     plot_pca(pca_df, var, 'ClusterK4_kmeans', 
              'PCA colored by ClusterK4_kmeans subtype', args.fig_path)
     plot_pca(pca_df, var, 'race', 'PCA colored by race', args.fig_path)
