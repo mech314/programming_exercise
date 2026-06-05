@@ -43,17 +43,19 @@ data/
 | Path | Contents |
 |------|----------|
 | `src/` | Numbered scripts for each exercise step |
-| `out/` | Filtered tables and merged metadata |
-| `figs/` | Plots  |
+| `src/data_utils.py` | Shared helpers for classifier scripts (tasks 7–9) |
+| `out/` | Filtered expression/metadata, `filter_summary.tsv`, merged tables |
+| `figs/` | Task-numbered plots (e.g. `1_gene_filter_barplot.png`, `2_PCA_race.png`) |
 | `models/` | Saved classifiers (`.pkl`) |
 | `docs/` | Assignment instructions and written answers |
 
 ## Running the pipeline
 
-Run scripts from the project root in order. Each script accepts `-h` for full options.
+Run scripts from the project root (`python src/...`). Each script accepts `-h` for full options.
 
 **Task 1 — Filter expression to GlobalMAD genes**
-Writes filtering summary to output folder
+
+Writes `out/filter_summary.tsv`, filtered expression tables, and filtered metadata.
 
 ```bash
 python src/1_filter_genelist.py \
@@ -72,6 +74,8 @@ python src/1_plot_filtered_data.py \
   -summary out/filter_summary.tsv
 ```
 
+Produces `figs/1_gene_filter_barplot.png`.
+
 **Task 2 — Count shared genes between gene lists**
 
 ```bash
@@ -89,6 +93,10 @@ python src/3_dim_reduction.py \
   -white_expr out/white_GlobalMAD_filtered.tsv \
   -white_meta out/white_filtered_metadata.tsv
 ```
+
+Produces `figs/2_PCA_ClusterK4_kmeans.png`, `figs/2_PCA_race.png`, and merged tables in `out/`.
+
+**Task 4–5 — Written answers only** (see [docs](#written-answers)).
 
 **Task 6 — Subtype proportions by race**
 
@@ -135,4 +143,4 @@ Task prompts are in [`docs/instructions.md`](docs/instructions.md). Written comm
 | 7 — White classifier performance | [`docs/7_classifier_performance_white.md`](docs/7_classifier_performance_white.md) |
 | 8 — Black transfer performance | [`docs/8_classifier_performance_black.md`](docs/8_classifier_performance_black.md) |
 
-An exploratory notebook is  available at [`src/EDA.ipynb`](src/EDA.ipynb).
+An exploratory notebook is available at [`src/EDA.ipynb`](src/EDA.ipynb).
